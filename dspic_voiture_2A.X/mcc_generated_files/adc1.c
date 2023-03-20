@@ -85,8 +85,8 @@ void ADC1_Initialize (void)
     ADMOD0H = 0x00;
     // SIGN24 disabled; DIFF25 disabled; DIFF24 disabled; SIGN25 disabled; 
     ADMOD1H = 0x00;
-    // IE1 disabled; IE0 disabled; IE3 disabled; IE2 disabled; IE5 disabled; IE4 disabled; IE10 disabled; IE7 disabled; IE6 disabled; IE9 disabled; IE8 disabled; IE11 disabled; 
-    ADIEL = 0x00;
+    // IE1 enabled; IE0 disabled; IE3 disabled; IE2 disabled; IE5 disabled; IE4 disabled; IE10 disabled; IE7 disabled; IE6 disabled; IE9 disabled; IE8 disabled; IE11 disabled; 
+    ADIEL = 0x02;
     // IE24 enabled; IE25 enabled; 
     ADIEH = 0x300;
     // CMPEN6 disabled; CMPEN10 disabled; CMPEN5 disabled; CMPEN11 disabled; CMPEN4 disabled; CMPEN3 disabled; CMPEN2 disabled; CMPEN1 disabled; CMPEN0 disabled; CMPEN9 disabled; CMPEN8 disabled; CMPEN7 disabled; 
@@ -170,6 +170,10 @@ void ADC1_Initialize (void)
     IFS12bits.ADCAN25IF = 0;
     // Enabling channel_AN25 interrupt.
     IEC12bits.ADCAN25IE = 1;
+    // Clearing V_BATT interrupt flag.
+    IFS5bits.ADCAN1IF = 0;
+    // Enabling V_BATT interrupt.
+    IEC5bits.ADCAN1IE = 1;
 
     // Setting WARMTIME bit
     ADCON5Hbits.WARMTIME = 0xF;
@@ -180,8 +184,8 @@ void ADC1_Initialize (void)
     // Enabling Power for Core1
     ADC1_Core1PowerEnable();
 
-    //TRGSRC0 None; TRGSRC1 Level Software Trigger; 
-    ADTRIG0L = 0x200;
+    //TRGSRC0 None; TRGSRC1 SCCP1; 
+    ADTRIG0L = 0x1400;
     //TRGSRC3 None; TRGSRC2 None; 
     ADTRIG0H = 0x00;
     //TRGSRC4 None; TRGSRC5 None; 
@@ -303,20 +307,19 @@ void ADC1_SetV_BATTInterruptHandler(void* handler)
     ADC1_V_BATTDefaultInterruptHandler = handler;
 }
 
-void __attribute__ ((weak)) ADC1_V_BATT_Tasks ( void )
+void __attribute__ ( ( __interrupt__ , auto_psv, weak ) ) _ADCAN1Interrupt ( void )
 {
     uint16_t valV_BATT;
+    //Read the ADC value from the ADCBUF
+    valV_BATT = ADCBUF1;
 
-    if(ADSTATLbits.AN1RDY)
-    {
-        //Read the ADC value from the ADCBUF
-        valV_BATT = ADCBUF1;
-
-        if(ADC1_V_BATTDefaultInterruptHandler) 
-        { 
-            ADC1_V_BATTDefaultInterruptHandler(valV_BATT); 
-        }
+    if(ADC1_V_BATTDefaultInterruptHandler) 
+    { 
+        ADC1_V_BATTDefaultInterruptHandler(valV_BATT); 
     }
+
+    //clear the V_BATT interrupt flag
+    IFS5bits.ADCAN1IF = 0;
 }
 
 

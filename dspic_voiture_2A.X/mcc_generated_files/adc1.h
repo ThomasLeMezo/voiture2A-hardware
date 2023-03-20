@@ -892,30 +892,6 @@ void ADC1_V_BATT_CallBack(uint16_t adcVal);
 */
 void ADC1_SetV_BATTInterruptHandler(void* handler);
 
-/**
-  @Summary
-    Polled implementation
-
-  @Description
-    This routine is used to implement the tasks for ADC1 V_BATT polled implementations.
-  
-  @Preconditions
-    ADC1_Initialize() function should have been 
-    called before calling this function.
- 
-  @Param
-    None
-
-  @Returns 
-    None
- 
-  @Example
-    <code>    
-        ADC1_V_BATT_Tasks();
-    </code>
-*/
-void ADC1_V_BATT_Tasks(void);
-
 
 
 /**

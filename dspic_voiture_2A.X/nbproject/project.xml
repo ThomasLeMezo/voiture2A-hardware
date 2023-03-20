@@ -18,6 +18,14 @@
                     <name>default</name>
                     <type>2</type>
                 </confElem>
+                <confElem>
+                    <name>with_power</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>without_power</name>
+                    <type>2</type>
+                </confElem>
             </confList>
             <formatting>
                 <project-formatting-style>false</project-formatting-style>

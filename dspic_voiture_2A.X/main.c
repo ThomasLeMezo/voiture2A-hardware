@@ -52,7 +52,7 @@
 #include "mcc_generated_files/tmr1.h"
 #include "mcc_generated_files/i2c1.h"
 
-const char device_name[16] = "DSPIC_MOTOR";
+const char device_name[16] = "DSPIC_VOITURE_2A";
 #define CODE_VERSION 0x01
 volatile unsigned char i2c_nb_bytes = 0;
 volatile unsigned char i2c_register = 0x00;
@@ -67,14 +67,14 @@ volatile unsigned char countdown_pwm_cmd[2];
 volatile unsigned char countdown_pwm[2];
 volatile unsigned short countdown_pwm_period = PWM_PERIOD;
 
-volatile unsigned char watchdog_restart_default = 3;
-volatile unsigned char watchdog_countdown_restart = 3;
+volatile unsigned char watchdog_restart_default = 10;
+volatile unsigned char watchdog_countdown_restart = 10;
 
 #define SBUS_SIGNAL_OK          0x00
 #define SBUS_SIGNAL_LOST        0x01
 
-unsigned char channel_switch_auto = 17;
-unsigned short channel_switch_auto_threshold = 1;
+unsigned char channel_switch_auto = 14;
+unsigned short channel_switch_auto_threshold = 180;
 
 uint8_t battery_volt[2];
 
@@ -108,7 +108,7 @@ void timer_pwm(){
 }
 
 /*
- * Timer watchdog for pwm (every 1s)
+ * Timer watchdog for pwm (every 0.2s)
  */
 void SCCP1_TMR_Timer32CallBack()
 {
@@ -118,6 +118,7 @@ void SCCP1_TMR_Timer32CallBack()
       countdown_pwm_cmd[0] = MOTOR_CMD_STOP;
       countdown_pwm_cmd[1] = MOTOR_CMD_STOP;
     }
+    //LED_Toggle();
 }
 
 // https://www.ordinoscope.net/index.php/Electronique/Protocoles/SBUS
@@ -131,8 +132,15 @@ unsigned char failsafe = 0;
 unsigned char lost = 0;
 int uart_errors = 0;
 
+void tx_uart_data(){
+    // Test
+    LED_Toggle();
+}
+
 void read_uart_data()
 {
+    if(!UART1_IsRxReady())
+        return;
     uint8_t data = UART1_Read();
     if (idx == 0 && data != 0x0F && idx<25) {  // start byte
       // error - wait for the start byte
@@ -141,7 +149,7 @@ void read_uart_data()
       uart_buffer[idx++] = data;  // fill the buffer
     }
     
-    if (idx == 25) {  // decode
+    if (idx >= 25) {  // decode
         idx = 0;
         if (uart_buffer[24] != 0x00) {
             uart_errors++;
@@ -173,27 +181,6 @@ void read_uart_data()
 
 bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
 {
-
-    // this emulates the slave device memory where data written to slave
-    // is placed and data read from slave is taken
-    /*
-     Emulate EEPORM default memory size is 64bytes
- 
-     Emulate EEPORM Read/Write Instruction:
-     --------------------------------------     
-     Byte Write Instruction:
-     |Start|slave Addr + w|Ack|AddrHighByte|Ack|AddrLowByte|Ack|data|Nack|Stop|
-     
-     Page Write Instruction:
-     |Start|slave Addr + w|Ack|AddrHighByte|Ack|AddrLowByte|Ack|dataByte n|Ack|...|data Byte n+x|Nack|Stop|
-     
-     Byte Read Instruction:
-     |Start|slave Addr + r|Ack|AddrHighByte|Ack|AddrLowByte|Ack|data|Nack|Stop|
-
-     Page Read Instruction:
-     |Start|slave Addr + r|Ack|AddrHighByte|Ack|AddrLowByte|Ack|dataByte n|Ack|...|dataByte n+x|Nack|Stop|
-    */
-
     static uint8_t i2c_data, i2c_address;
     static uint8_t i2c_address_rest = true;
     static uint8_t i2c_default_data = 0x00;
@@ -212,7 +199,7 @@ bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
                     I2C1_ReadPointerSet(&countdown_pwm_cmd[i2c_address]);
                     break;
                 case 0x10 ... 0x34: // Channels
-                    I2C1_ReadPointerSet(&channels[i2c_address-0x10]);
+                    I2C1_ReadPointerSet(&((char*)channels)[i2c_address-0x10]);
                     break;
                 case 0x35:
                     I2C1_ReadPointerSet(&failsafe);
@@ -221,9 +208,12 @@ bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
                     I2C1_ReadPointerSet(&lost);
                     break;
                     
-                case 0x40 ... 0x41:
+                case 0x37 ... 0x38:
                     I2C1_ReadPointerSet(&battery_volt[i2c_address-0x40]);
                     break;
+                    
+                case 0xF0 ... 0xFF:
+                    I2C1_ReadPointerSet(&device_name[i2c_address-0xF0]);
                 
                 default:
                     I2C1_ReadPointerSet(&i2c_default_data);
@@ -261,7 +251,7 @@ bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
     return true;
 }
 
-void ADC1_V_BATT_CallBack( uint16_t adcVal ){
+void get_battery( uint16_t adcVal ){
     battery_volt[0] = adcVal;
     battery_volt[1] = adcVal>>8;
 }
@@ -278,6 +268,10 @@ int main(void)
     // Timers
     TMR1_SetInterruptHandler(&timer_pwm);
     UART1_SetRxInterruptHandler(&read_uart_data);
+    UART1_SetTxInterruptHandler(&tx_uart_data);
+    ADC1_SetV_BATTInterruptHandler(&get_battery);
+    
+    LED_SetHigh();
     
     
     while (1)
@@ -291,10 +285,10 @@ int main(void)
         }
         if(channels[channel_switch_auto]<channel_switch_auto_threshold 
                 || failsafe != SBUS_SIGNAL_OK
-                || watchdog_countdown_restart==0){
+                //|| watchdog_countdown_restart==0
+                ){
             SWITCH_AUTO_SetLow();
             LED_SetLow();
-            
         }
         else{
             SWITCH_AUTO_SetHigh();

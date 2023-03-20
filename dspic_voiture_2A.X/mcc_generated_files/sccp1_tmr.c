@@ -91,10 +91,10 @@ void SCCP1_TMR_Initialize(void)
     CCP1TMRL = 0x00;
     //TMR 0; 
     CCP1TMRH = 0x00;
-    //PR 55172; 
-    CCP1PRL = 0xD784;
-    //PR 23; 
-    CCP1PRH = 0x17;
+    //PR 50356; 
+    CCP1PRL = 0xC4B4;
+    //PR 4; 
+    CCP1PRH = 0x04;
     //CMP 0; 
     CCP1RA = 0x00;
     //CMP 0; 

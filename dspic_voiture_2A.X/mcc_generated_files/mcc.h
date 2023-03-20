@@ -53,15 +53,15 @@
 #include "system_types.h"
 #include "reset.h"
 
+#include "watchdog.h"
 #include "interrupt_manager.h"
 #include "traps.h"
-#include "reset.h"
-#include "adc1.h"
 #include "uart1.h"
 #include "sccp1_tmr.h"
-#include "tmr1.h"
-#include "watchdog.h"
+#include "adc1.h"
 #include "i2c1.h"
+#include "reset.h"
+#include "tmr1.h"
 
 #warning "This file will be removed in future MCC releases. Use system.h instead."
 
