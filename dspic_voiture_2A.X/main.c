@@ -52,8 +52,12 @@
 #include "mcc_generated_files/tmr1.h"
 #include "mcc_generated_files/i2c1.h"
 
+#define FCY 100000000UL
+#include <xc.h>
+#include <libpic30.h>
+
 const char device_name[16] = "DSPIC_VOITURE_2A";
-#define CODE_VERSION 0x01
+const char code_version = 0x01;
 volatile unsigned char i2c_nb_bytes = 0;
 volatile unsigned char i2c_register = 0x00;
 
@@ -189,17 +193,14 @@ bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
     {
         case I2C1_SLAVE_TRANSMIT_REQUEST_DETECTED:
             // set up the slave driver buffer transmit pointer
-            if(i2c_address_rest){
-                i2c_address = i2c_data;
-                i2c_address_rest = false;
-            }
+            i2c_address_rest = false;
             
             switch(i2c_address){
                 case 0x00 ... 0x01: // PWM values
-                    I2C1_ReadPointerSet(&countdown_pwm_cmd[i2c_address]);
+                    I2C1_ReadPointerSet(&(((char*)countdown_pwm_cmd)[i2c_address]));
                     break;
                 case 0x10 ... 0x34: // Channels
-                    I2C1_ReadPointerSet(&((char*)channels)[i2c_address-0x10]);
+                    I2C1_ReadPointerSet(&(((char*)channels)[i2c_address-0x10]));
                     break;
                 case 0x35:
                     I2C1_ReadPointerSet(&failsafe);
@@ -209,16 +210,19 @@ bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
                     break;
                     
                 case 0x37 ... 0x38:
-                    I2C1_ReadPointerSet(&battery_volt[i2c_address-0x40]);
+                    I2C1_ReadPointerSet(&(((char*)battery_volt)[i2c_address-0x40]));
+                    break;
+                    
+                case 0xC0:
+                    I2C1_ReadPointerSet(&code_version);
                     break;
                     
                 case 0xF0 ... 0xFF:
-                    I2C1_ReadPointerSet(&device_name[i2c_address-0xF0]);
-                
+                    I2C1_ReadPointerSet(&(((char*)device_name)[i2c_address-0xF0]));
+                    break;
                 default:
                     I2C1_ReadPointerSet(&i2c_default_data);
             }
-
             i2c_address++;
             break;
 
@@ -226,6 +230,7 @@ bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
             // set up the slave driver buffer receive pointer
             I2C1_WritePointerSet(&i2c_data);
             i2c_address_rest = true;
+            i2c_address = i2c_data;
             break;
 
         case I2C1_SLAVE_RECEIVED_DATA_DETECTED:
@@ -233,15 +238,16 @@ bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
                 i2c_address = i2c_data;
                 i2c_address_rest = false;
             }
-            
-            switch(i2c_address){
-                case 0x00 ... 0x01:
-                    if(i2c_data>= MOTOR_CMD_MIN && i2c_data <= MOTOR_CMD_MAX)
-                        countdown_pwm_cmd[i2c_address] = i2c_data;
-                        watchdog_countdown_restart = watchdog_restart_default;
-                    break;
+            else{
+                switch(i2c_address){
+                    case 0x00 ... 0x01:
+                        if(i2c_data>= MOTOR_CMD_MIN && i2c_data <= MOTOR_CMD_MAX)
+                            countdown_pwm_cmd[i2c_address] = i2c_data;
+                            watchdog_countdown_restart = watchdog_restart_default;
+                        break;
+                }
+                i2c_address++;
             }
-            i2c_address++;
 
             break;
 
@@ -260,10 +266,9 @@ void get_battery( uint16_t adcVal ){
                          Main application
  */
 int main(void)
-{
+{ 
     // initialize the device
     SYSTEM_Initialize();
-    
 
     // Timers
     TMR1_SetInterruptHandler(&timer_pwm);
@@ -271,8 +276,10 @@ int main(void)
     UART1_SetTxInterruptHandler(&tx_uart_data);
     ADC1_SetV_BATTInterruptHandler(&get_battery);
     
-    LED_SetHigh();
-    
+    for(int i=0; i<20; i++){
+        LED_Toggle();
+        __delay_ms(100);        
+    }
     
     while (1)
     {

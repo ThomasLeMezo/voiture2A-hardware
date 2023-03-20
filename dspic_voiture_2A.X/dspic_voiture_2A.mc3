@@ -6880,7 +6880,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="ADC1" registerAlias="ADCI" settingAlias="enable"/>
-         <value>disabled</value>
+         <value>enabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="ADC1" registerAlias="ADCI" settingAlias="flag"/>
@@ -19482,7 +19482,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\adc1.c</file>
-         <hash>7721316ae4dcb8bf866d6c58b04c0d41aa6eb70d8c85f71051e7cebe41ec756f</hash>
+         <hash>2e92e8a14c48dd913514e0b110f992e5bd4d6d02164078586445db1b69df00a0</hash>
       </entry>
       <entry>
          <file>main.c</file>
@@ -19498,7 +19498,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\pin_manager.c</file>
-         <hash>506cc0625ecebc95eefd26333e20c39e003e76be85f414bdb13002c71e3ba6f7</hash>
+         <hash>b96edcd2988ba5a4b2b3f159bd98189e931e3c4ccd9ae4dc8868850deb8c735c</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\traps.c</file>
@@ -19514,11 +19514,11 @@
       </entry>
       <entry>
          <file>mcc_generated_files\adc1.h</file>
-         <hash>a9836edd578b7b5c0ffb38e8efb638bbbd013f52a847187468a4acc17a99dd9e</hash>
+         <hash>49148e359032a01cecbcfbbc931d4864c9ffe112f44183c52745f1e8190100d1</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\interrupt_manager.c</file>
-         <hash>d649a2c483302dd9eb1a4e0cb7fa001c6df05870d7cd0187521be043f46ee788</hash>
+         <hash>37c30ab83b95bbdab2396e74354b10d699875b9c1ad779409a26e8082bf99ce8</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\watchdog.h</file>

@@ -162,6 +162,10 @@ void ADC1_Initialize (void)
     ADC1_Setchannel_AN25InterruptHandler(&ADC1_channel_AN25_CallBack);
     ADC1_SetV_BATTInterruptHandler(&ADC1_V_BATT_CallBack);
     
+    // Clearing ADC1 interrupt.
+    IFS5bits.ADCIF = 0;
+    // Enabling ADC1 interrupt.
+    IEC5bits.ADCIE = 1;
     // Clearing channel_AN24 interrupt flag.
     IFS12bits.ADCAN24IF = 0;
     // Enabling channel_AN24 interrupt.
@@ -232,18 +236,15 @@ void ADC1_SetCommonInterruptHandler(void* handler)
     ADC1_CommonDefaultInterruptHandler = handler;
 }
 
-void __attribute__ ((weak)) ADC1_Tasks ( void )
+void __attribute__ ( ( __interrupt__ , auto_psv, weak ) ) _ADCInterrupt ( void )
 {
-    if(IFS5bits.ADCIF)
-    {
-        if(ADC1_CommonDefaultInterruptHandler) 
-        { 
-            ADC1_CommonDefaultInterruptHandler(); 
-        }
-
-        // clear the ADC1 interrupt flag
-        IFS5bits.ADCIF = 0;
+    if(ADC1_CommonDefaultInterruptHandler) 
+    { 
+        ADC1_CommonDefaultInterruptHandler(); 
     }
+
+    // clear the ADC1 interrupt flag
+    IFS5bits.ADCIF = 0;
 }
 
 void __attribute__ ((weak)) ADC1_channel_AN24_CallBack( uint16_t adcVal )

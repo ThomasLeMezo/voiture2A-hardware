@@ -610,29 +610,6 @@ void ADC1_CallBack(void);
 */
 void ADC1_SetCommonInterruptHandler(void* handler);
 
-/**
-  @Summary
-    Polled implementation
-
-  @Description
-    This routine is used to implement the tasks for polled implementations.
-  
-  @Preconditions
-    ADC1_Initialize() function should have been 
-    called before calling this function.
- 
-  @Param
-    None
-
-  @Returns 
-    None
- 
-  @Example
-    <code>    
-        ADC1_Tasks();
-    </code>
-*/
-void ADC1_Tasks(void);
 
 /**
   @Summary

@@ -61,6 +61,9 @@ void INTERRUPT_Initialize (void)
     //    ADCAN1: ADC AN1 Convert Done
     //    Priority: 1
         IPC23bits.ADCAN1IP = 1;
+    //    ADCI: ADC Global Interrupt
+    //    Priority: 1
+        IPC22bits.ADCIP = 1;
     //    ADCAN25: ADC AN25 Convert Done
     //    Priority: 1
         IPC48bits.ADCAN25IP = 1;
