@@ -51,6 +51,7 @@
 #include "mcc_generated_files/uart1.h"
 #include "mcc_generated_files/tmr1.h"
 #include "mcc_generated_files/i2c1.h"
+#include <math.h>
 
 #define FCY 100000000UL
 #include <xc.h>
@@ -62,14 +63,14 @@ volatile unsigned char i2c_nb_bytes = 0;
 volatile unsigned char i2c_register = 0x00;
 
 // PWM motors/servo
-#define MOTOR_CMD_STOP (150)
-#define MOTOR_CMD_MIN (110)
-#define MOTOR_CMD_MAX (190)
-#define PWM_PERIOD 2000
+#define MOTOR_CMD_STOP (1500/5)
+const float motor_cmd_min = 1100.0/5.0; // 1100.0/2.0;
+const float motor_cmd_max = 1900.0/5.0; //1900.0/2.0;
+#define PWM_PERIOD 4000
 // pwm : [0 = SERVO, 1 = MOTOR]
-volatile unsigned char countdown_pwm_cmd[2];
-volatile unsigned char countdown_pwm[2];
-volatile unsigned short countdown_pwm_period = PWM_PERIOD;
+volatile unsigned short countdown_pwm_cmd[2];
+volatile unsigned short countdown_pwm[2];
+volatile unsigned int countdown_pwm_period = PWM_PERIOD;
 
 volatile unsigned char watchdog_restart_default = 10;
 volatile unsigned char watchdog_countdown_restart = 10;
@@ -188,6 +189,7 @@ bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
     static uint8_t i2c_data, i2c_address;
     static uint8_t i2c_address_rest = true;
     static uint8_t i2c_default_data = 0x00;
+    static float half_pwm;
 
     switch (status)
     {
@@ -196,7 +198,7 @@ bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
             i2c_address_rest = false;
             
             switch(i2c_address){
-                case 0x00 ... 0x01: // PWM values
+                case 0x00 ... 0x04: // PWM values
                     I2C1_ReadPointerSet(&(((char*)countdown_pwm_cmd)[i2c_address]));
                     break;
                 case 0x10 ... 0x34: // Channels
@@ -241,9 +243,9 @@ bool I2C1_StatusCallback(I2C1_SLAVE_DRIVER_STATUS status)
             else{
                 switch(i2c_address){
                     case 0x00 ... 0x01:
-                        if(i2c_data>= MOTOR_CMD_MIN && i2c_data <= MOTOR_CMD_MAX)
-                            countdown_pwm_cmd[i2c_address] = i2c_data;
-                            watchdog_countdown_restart = watchdog_restart_default;
+                        half_pwm = ((float)i2c_data)*((motor_cmd_max-motor_cmd_min)/255.0)+motor_cmd_min;
+                        countdown_pwm_cmd[i2c_address] = round(half_pwm); // (PWM_MAX-PWM_MIN)/255+PWM_MIN => 1102 for rounding
+                        watchdog_countdown_restart = watchdog_restart_default;
                         break;
                 }
                 i2c_address++;

@@ -55,18 +55,6 @@ void INTERRUPT_Initialize (void)
     //    CCTI: CCP1 Timer Event
     //    Priority: 1
         IPC1bits.CCT1IP = 1;
-    //    ADCAN24: ADC AN24 Convert Done
-    //    Priority: 1
-        IPC48bits.ADCAN24IP = 1;
-    //    ADCAN1: ADC AN1 Convert Done
-    //    Priority: 1
-        IPC23bits.ADCAN1IP = 1;
-    //    ADCI: ADC Global Interrupt
-    //    Priority: 1
-        IPC22bits.ADCIP = 1;
-    //    ADCAN25: ADC AN25 Convert Done
-    //    Priority: 1
-        IPC48bits.ADCAN25IP = 1;
     //    UEVTI: UART1 Event
     //    Priority: 1
         IPC47bits.U1EVTIP = 1;
@@ -79,6 +67,18 @@ void INTERRUPT_Initialize (void)
     //    URXI: UART1 RX
     //    Priority: 1
         IPC2bits.U1RXIP = 1;
+    //    ADCAN24: ADC AN24 Convert Done
+    //    Priority: 1
+        IPC48bits.ADCAN24IP = 1;
+    //    ADCAN1: ADC AN1 Convert Done
+    //    Priority: 1
+        IPC23bits.ADCAN1IP = 1;
+    //    ADCI: ADC Global Interrupt
+    //    Priority: 1
+        IPC22bits.ADCIP = 1;
+    //    ADCAN25: ADC AN25 Convert Done
+    //    Priority: 1
+        IPC48bits.ADCAN25IP = 1;
     //    SICI: I2C1 Slave Event
     //    Priority: 1
         IPC4bits.SI2C1IP = 1;
