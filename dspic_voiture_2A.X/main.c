@@ -58,7 +58,7 @@
 #include <libpic30.h>
 
 const char device_name[16] = "DSPIC_VOITURE_2A";
-const char code_version = 0x01;
+const char code_version = 0x02;
 volatile unsigned char i2c_nb_bytes = 0;
 volatile unsigned char i2c_register = 0x00;
 
